@@ -49,101 +49,243 @@
 				</section>
 
 				<section>
-					<h2>#Ajax</h2>
-					<p>
-						what's?
-					</p>
-					<blockquote cite="https://en.wikipedia.org/wiki/Ajax_(programming)">
-						&ldquo;
-						Ajax (also AJAX; /ˈeɪdʒæks/; short for asynchronous JavaScript and XML) is a group of interrelated Web development techniques used on the client-side to create asynchronous Web applications.
-						&rdquo;
-					</blockquote>
+					<ul>
+						<li>manipulation</li>
+						<li><del>queue</del></li>
+						<li>traversing</li>
+						<li>exports</li>
+					</ul>
 				</section>
 
 				<section>
-					<h2>jQuery & Zepto</h2>
-				</section>
-
-				<section data-markdown>
-					<script type="text/template">
-						## Talk is cheap. Show me the code
-
-						```javascript
-							// the ajax method
-							$.ajax(<options>);
-
-							// get
-							$.get(<url>,[callback]);
-
-							// post
-							$.post(<url>,[callback]);
-
-							// param
-							$.param(<obj>, [traditional]);
-						```
-					</script>
-				</section>
-
-				<section>
-					<section id="fragments">
-						<h2>Fragments</h2>
-						<p>Hit the next arrow...</p>
-						<p class="fragment">... to step through ...</p>
-						<p><span class="fragment">... a</span> <span class="fragment">fragmented</span> <span class="fragment">slide.</span></p>
-
-						<aside class="notes">
-							This slide has fragments which are also stepped through in the notes window.
-						</aside>
+					<section>
+						<h2>manipulation</h2>
 					</section>
 					<section>
-						<h2>Fragment Styles</h2>
-						<p>There's different types of fragments, like:</p>
-						<p class="fragment grow">grow</p>
-						<p class="fragment shrink">shrink</p>
-						<p class="fragment fade-out">fade-out</p>
-						<p class="fragment current-visible">current-visible</p>
-						<p class="fragment highlight-red">highlight-red</p>
-						<p class="fragment highlight-blue">highlight-blue</p>
+						<section>
+							<h2>buildFragment</h2>
+							<div data-markdown>
+								```
+function buildFragment( elems, context, scripts, selection, ignored ) {
+	var elem, tmp, tag, wrap, contains, j,
+		fragment = context.createDocumentFragment(),
+		nodes = [],
+		i = 0,
+		l = elems.length;
+
+	for ( ; i < l; i++ ) {
+		elem = elems[ i ];
+
+		if ( elem || elem === 0 ) {
+
+			// Add nodes directly
+			if ( jQuery.type( elem ) === "object" ) {
+				// Support: Android<4.1, PhantomJS<2
+				// push.apply(_, arraylike) throws on ancient WebKit
+				jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
+
+			// Convert non-html into a text node
+			} else if ( !rhtml.test( elem ) ) {
+				nodes.push( context.createTextNode( elem ) );
+
+			// Convert html into DOM nodes
+			} else {
+				tmp = tmp || fragment.appendChild( context.createElement( "div" ) );
+
+				// Deserialize a standard representation
+				tag = ( rtagName.exec( elem ) || [ "", "" ] )[ 1 ].toLowerCase();
+				wrap = wrapMap[ tag ] || wrapMap._default;
+				tmp.innerHTML = wrap[ 1 ] + jQuery.htmlPrefilter( elem ) + wrap[ 2 ];
+
+				// Descend through wrappers to the right content
+				j = wrap[ 0 ];
+				while ( j-- ) {
+					tmp = tmp.lastChild;
+				}
+
+				// Support: Android<4.1, PhantomJS<2
+				// push.apply(_, arraylike) throws on ancient WebKit
+				jQuery.merge( nodes, tmp.childNodes );
+
+				// Remember the top-level container
+				tmp = fragment.firstChild;
+
+				// Ensure the created nodes are orphaned (#12392)
+				tmp.textContent = "";
+			}
+		}
+	}
+
+	// Remove wrapper from fragment
+	fragment.textContent = "";
+
+	i = 0;
+	while ( ( elem = nodes[ i++ ] ) ) {
+
+		// Skip elements already in the context collection (trac-4087)
+		if ( selection && jQuery.inArray( elem, selection ) > -1 ) {
+			if ( ignored ) {
+				ignored.push( elem );
+			}
+			continue;
+		}
+
+		contains = jQuery.contains( elem.ownerDocument, elem );
+
+		// Append to fragment
+		tmp = getAll( fragment.appendChild( elem ), "script" );
+
+		// Preserve script evaluation history
+		if ( contains ) {
+			setGlobalEval( tmp );
+		}
+
+		// Capture executables
+		if ( scripts ) {
+			j = 0;
+			while ( ( elem = tmp[ j++ ] ) ) {
+				if ( rscriptType.test( elem.type || "" ) ) {
+					scripts.push( elem );
+				}
+			}
+		}
+	}
+
+	return fragment;
+}
+
+return buildFragment;
+});
+								```
+							</div>
+							<a href="https://github.com/jquery/jquery/blob/master/src/manipulation/buildFragment.js">jquery/src/manipulation/buildFragment.js</a>
+						</section>
+
+					</section>
+					<section>
+<div data-markdown>
+```
+var rhtml = /<|&#?\w+;/;
+
+function buildFragment(elems, context, scripts, selection, ignored){
+	for ( ; i < l; i++ ) {
+		elem = elems[ i ];
+		if(rhtml.test(elem)){
+			nodes.push( context.createTextNode( elem ) );
+		}else{
+			tmp = tmp || fragment.appendChild( context.createElement( "div" ) );
+			tmp.innerHTML = wrap[ 1 ] + jQuery.htmlPrefilter( elem ) + wrap[ 2 ];
+
+			// ...
+
+			jQuery.merge( nodes, tmp.childNodes );
+			tmp = fragment.firstChild;
+			tmp.textContent = "";
+		}
+	}
+
+	while ( ( elem = nodes[ i++ ] ) ) {
+		// Append to fragment
+		tmp = getAll( fragment.appendChild( elem ), "script" );
+	}
+
+	// ...
+
+	return fragment;
+}
+```
+</div>
+
+					</section>
+					<section>
+<pre><code>
+var rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:-]+)[^>]*)\/>/gi;
+
+function htmlPrefilter( html ) {
+  return html.replace( rxhtmlTag, "&lt;$1&gt;&lt;/$2&gt;" );
+}
+</code></pre>
+
+<div data-markdown>
+```
+htmlPrefilter('&lt;img/&gt;');
+
+// &lt;img&gt;&lt;/img&gt;
+```
+</div>
+					</section>
+
+				</section>
+
+				<section>
+					<h2>traversing</h2>
+					<a href="https://github.com/jquery/jquery/blob/a644101ed04d0beacea864ce805e0c4f86ba1cd1/src/traversing.js">jquery/src/traversing.js</a>
+				</section>
+
+				<section>
+					<section>
+						<h2>exports</h2>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## UMD
+
+							```javascript
+							var jQuery = function(){
+								// do something.
+							};
+
+							// expose to global scope.
+							umdify(jQuery);
+							```
+						</script>
+					</section>
+					<section>
+						<h2>umdify</h2>
+					</section>
+					<section >
+						<h2>UMDIFY</h2>
+<pre><code data-trim>
+function umdify(fn){
+	if(typeof define == 'undefined' && define.amd){
+		// AMD. Register as an anonymous module.
+		define([], fn);
+	}else if(module && module.exports){
+		// Common.js
+		module.exports = fn;
+	}else{
+		window[ 'YourAwesomeModule' ] = fn;
+	}
+};
+</code></pre>
 					</section>
 				</section>
 
-				<section id="transitions">
-					<h2>Transition Styles</h2>
-					<p>
-						You can select from different transitions, like: <br>
-						<a href="?transition=none#/transitions">None</a> -
-						<a href="?transition=fade#/transitions">Fade</a> -
-						<a href="?transition=slide#/transitions">Slide</a> -
-						<a href="?transition=convex#/transitions">Convex</a> -
-						<a href="?transition=concave#/transitions">Concave</a> -
-						<a href="?transition=zoom#/transitions">Zoom</a>
-					</p>
+				<section>
+					<h2>Questions ?</h2>
 				</section>
 
 				<section>
-					<h2>Pretty Code</h2>
-					<pre><code data-trim contenteditable>
-
-					</code></pre>
-					<p>Code syntax highlighting courtesy of <a href="http://softwaremaniacs.org/soft/highlight/en/description/">highlight.js</a>.</p>
-				</section>
-
-				<section>
-					<h2>Much more</h2>
-					<ul>
-						<li>Right-to-left support</li>
-						<li><a href="https://github.com/hakimel/reveal.js#api">Extensive JavaScript API</a></li>
-						<li><a href="https://github.com/hakimel/reveal.js#auto-sliding">Auto-progression</a></li>
-						<li><a href="https://github.com/hakimel/reveal.js#parallax-background">Parallax backgrounds</a></li>
-						<li><a href="https://github.com/hakimel/reveal.js#keyboard-bindings">Custom keyboard bindings</a></li>
-					</ul>
+					<section>
+						<h2>Wait...</h2>
+					</section>
+					<section>
+						<h2>Other Things</h2>
+						<ul>
+							<li>rootJQuery</li>
+							<li>$.fn.init</li>
+							<li>$.fn.isPlainObject</li>
+							<li><del>$.each</del></li>
+						</ul>
+						<a href="http://stackoverflow.com/questions/7644199/jquery-source-code-questions">http://stackoverflow.com/questions/7644199/jquery-source-code-questions</a>
+					</section>
 				</section>
 
 				<section style="text-align: left;">
 					<h1>THE END</h1>
 					<p>
-						- <a href="http://slides.com">Try the online editor</a> <br>
-						- <a href="https://github.com/hakimel/reveal.js">Source code &amp; documentation</a>
+						- <a href="http://jquery.com/">jQuery JavaScript Library</a> <br>
+						- <a href="https://robflaherty.github.io/jquery-annotated-source/">jQuery Annotated Source</a>
 					</p>
 				</section>
 
