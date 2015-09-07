@@ -1,325 +1,203 @@
 <!doctype html>
 <html lang="en">
 
-	<head>
-		<meta charset="utf-8">
+<head>
+    <meta charset="utf-8">
 
-		<title>Talk about jQuery Source Code and Tricks</title>
+    <title>Talk about jQuery Source Code and Tricks</title>
 
-		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
-		<meta name="author" content="Hakim El Hattab">
+    <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+    <meta name="author" content="Hakim El Hattab">
 
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/white.css" id="theme">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/white.css" id="theme">
 
-		<!-- Code syntax highlighting -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
 
-		<!--[if lt IE 9]>
-		<script src="lib/js/html5shiv.js"></script>
-		<![endif]-->
-	</head>
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+    <style>
+        .reveal p {
+            text-align: left;
+        }
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6
+        {
+            text-transform: none;
+        }
+    </style>
+</head>
 
-	<body>
+<body>
 
-		<div class="reveal">
+<div class="reveal">
 
-			<!-- Any section element inside of this container is displayed as a slide -->
-			<div class="slides">
-				<section>
-					<h1>Talk about jQuery Source Code and Tricks</h1>
-					<h3>一起读jQuery源码</h3>
-					<p>
-						<small>Created by <a href="//lsong.org">Lsong</a> / <a href="http://github.com/song940">@song940</a></small>
-					</p>
-				</section>
+    <!-- Any section element inside of this container is displayed as a slide -->
+    <div class="slides">
+        <section>
+            <h1>jQuery异步编程</h1>
 
-				<section>
-					<ul>
-						<li>manipulation</li>
-						<li><del>queue</del></li>
-						<li>traversing</li>
-						<li>exports</li>
-					</ul>
-				</section>
+            <h3>deferred、promise、callback</h3>
+            <br>
 
-				<section>
-					<section>
-						<h2>manipulation</h2>
-					</section>
-					<section>
-						<section>
-							<h2>buildFragment</h2>
-							<div data-markdown>
-								```
-function buildFragment( elems, context, scripts, selection, ignored ) {
-	var elem, tmp, tag, wrap, contains, j,
-		fragment = context.createDocumentFragment(),
-		nodes = [],
-		i = 0,
-		l = elems.length;
+            <p style="text-align: right">
+                <small>Created by <a href="http://zodiac-xl.github.io/blog">xiaolong</a> / <a
+                        href="https://github.com/zodiac-xl">@zodiac-xl</a></small>
+            </p>
+        </section>
 
-	for ( ; i < l; i++ ) {
-		elem = elems[ i ];
 
-		if ( elem || elem === 0 ) {
+        <section>
+            <ul>
+                <li>背景</li>
+                <li>javascript异步编程的发展</li>
+                <li>jQuery异步编程</li>
+                <li>jQuery callbacks补充</li>
+            </ul>
+        </section>
 
-			// Add nodes directly
-			if ( jQuery.type( elem ) === "object" ) {
-				// Support: Android<4.1, PhantomJS<2
-				// push.apply(_, arraylike) throws on ancient WebKit
-				jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
+        <section data-markdown="md/背景.md" data-separator="^\n\n\n" data-separator-vertical="^\n\n"></section>
 
-			// Convert non-html into a text node
-			} else if ( !rhtml.test( elem ) ) {
-				nodes.push( context.createTextNode( elem ) );
 
-			// Convert html into DOM nodes
-			} else {
-				tmp = tmp || fragment.appendChild( context.createElement( "div" ) );
+        <section data-markdown="md/Javascript异步编程的发展.md" data-separator="^\n\n\n"
+                 data-separator-vertical="^\n\n"></section>
 
-				// Deserialize a standard representation
-				tag = ( rtagName.exec( elem ) || [ "", "" ] )[ 1 ].toLowerCase();
-				wrap = wrapMap[ tag ] || wrapMap._default;
-				tmp.innerHTML = wrap[ 1 ] + jQuery.htmlPrefilter( elem ) + wrap[ 2 ];
+        <section>
+                <h5>jQuery异步编程</h5>
+                <ul>
+                    <li>
+                        jQuery deferred的诞生
+                    </li>
+                    <li>deferred的思想</li>
+                    <li>
+                        jQuery deferred主要功能
+                    </li>
 
-				// Descend through wrappers to the right content
-				j = wrap[ 0 ];
-				while ( j-- ) {
-					tmp = tmp.lastChild;
-				}
+                    <li>发展趋势</li>
+                </ul>
 
-				// Support: Android<4.1, PhantomJS<2
-				// push.apply(_, arraylike) throws on ancient WebKit
-				jQuery.merge( nodes, tmp.childNodes );
+        </section>
 
-				// Remember the top-level container
-				tmp = fragment.firstChild;
+        <section data-markdown="md/异步嵌套 jQuery的deferred ES6的generator async:await .md" data-separator="^\n\n\n"
+                 data-separator-vertical="^\n\n"></section>
 
-				// Ensure the created nodes are orphaned (#12392)
-				tmp.textContent = "";
-			}
-		}
-	}
+        <section>
+            <p>前面deferred基本实现了异步编程的流程控制 为什么还需要callbacks呢？</p>
+        </section>
 
-	// Remove wrapper from fragment
-	fragment.textContent = "";
+        <section>
+            <p>是的 callbacks就是实现队列控制的</p>
+        </section>
 
-	i = 0;
-	while ( ( elem = nodes[ i++ ] ) ) {
 
-		// Skip elements already in the context collection (trac-4087)
-		if ( selection && jQuery.inArray( elem, selection ) > -1 ) {
-			if ( ignored ) {
-				ignored.push( elem );
-			}
-			continue;
-		}
+        <section data-markdown="md/Jquery callbacks.md" data-separator="^\n\n\n"
+                 data-separator-vertical="^\n\n"></section>
 
-		contains = jQuery.contains( elem.ownerDocument, elem );
+        <section>
+            <h5>
+                总结
+            </h5>
+            <ul>
+                <li>异步编程的背景</li>
+                <li>
+                    <ul>
+                        <li>javascript异步编程的发展</li>
+                        <li>
+                            <ol>
+                                <li>回调函数callback</li>
+                                <li>事件监听</li>
+                                <li>Pub/Sub发布/订阅</li>
+                                <li>Promise对象</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>jQuery异步编程</li>
+                        <li>
+                            <ol>
+                                <li>deferred的诞生</li>
+                                <li>deferred的思想</li>
+                                <li>deferred的功能</li>
+                                <li>发展趋势</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </li>
+                <li>jQuery callbacks补充</li>
+            </ul>
+        </section>
 
-		// Append to fragment
-		tmp = getAll( fragment.appendChild( elem ), "script" );
 
-		// Preserve script evaluation history
-		if ( contains ) {
-			setGlobalEval( tmp );
-		}
+        <section>
+            <h5>思考</h5>
+            <p>jquery的队列都是按序执行 为什么不用双向链表 方便实现队列的插入、删除等操作 改变执行顺序呢</p>
+        </section>
 
-		// Capture executables
-		if ( scripts ) {
-			j = 0;
-			while ( ( elem = tmp[ j++ ] ) ) {
-				if ( rscriptType.test( elem.type || "" ) ) {
-					scripts.push( elem );
-				}
-			}
-		}
-	}
+    </div>
 
-	return fragment;
-}
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
 
-return buildFragment;
-});
-								```
-							</div>
-							<a href="https://github.com/jquery/jquery/blob/master/src/manipulation/buildFragment.js">jquery/src/manipulation/buildFragment.js</a>
-						</section>
+    <script>
 
-					</section>
-					<section>
-<div data-markdown>
-```
-var rhtml = /<|&#?\w+;/;
+        // Full list of configuration options available at:
+        // https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
 
-function buildFragment(elems, context, scripts, selection, ignored){
-	for ( ; i < l; i++ ) {
-		elem = elems[ i ];
-		if(rhtml.test(elem)){
-			nodes.push( context.createTextNode( elem ) );
-		}else{
-			tmp = tmp || fragment.appendChild( context.createElement( "div" ) );
-			tmp.innerHTML = wrap[ 1 ] + jQuery.htmlPrefilter( elem ) + wrap[ 2 ];
+            transition: 'zoom', // none/fade/slide/convex/concave/zoom
 
-			// ...
+            // Optional reveal.js plugins
+            dependencies: [
+                {
+                    src: 'lib/js/classList.js', condition: function () {
+                    return !document.body.classList;
+                }
+                },
+                {
+                    src: 'plugin/markdown/marked.js', condition: function () {
+                    return !!document.querySelector('[data-markdown]');
+                }
+                },
+                {
+                    src: 'plugin/markdown/markdown.js', condition: function () {
+                    return !!document.querySelector('[data-markdown]');
+                }
+                },
+                {
+                    src: 'plugin/highlight/highlight.js', async: true, condition: function () {
+                    return !!document.querySelector('pre code');
+                }, callback: function () {
+                    hljs.initHighlightingOnLoad();
+                }
+                },
+                {src: 'plugin/zoom-js/zoom.js', async: true},
+                {src: 'plugin/notes/notes.js', async: true}
+            ]
+        });
 
-			jQuery.merge( nodes, tmp.childNodes );
-			tmp = fragment.firstChild;
-			tmp.textContent = "";
-		}
-	}
+    </script>
 
-	while ( ( elem = nodes[ i++ ] ) ) {
-		// Append to fragment
-		tmp = getAll( fragment.appendChild( elem ), "script" );
-	}
-
-	// ...
-
-	return fragment;
-}
-```
-</div>
-
-					</section>
-					<section>
-<pre><code>
-var rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:-]+)[^>]*)\/>/gi;
-
-function htmlPrefilter( html ) {
-  return html.replace( rxhtmlTag, "&lt;$1&gt;&lt;/$2&gt;" );
-}
-</code></pre>
-
-<div data-markdown>
-```
-htmlPrefilter('&lt;img/&gt;');
-
-// &lt;img&gt;&lt;/img&gt;
-```
-</div>
-					</section>
-
-				</section>
-
-				<section>
-					<h2>traversing</h2>
-					<a href="https://github.com/jquery/jquery/blob/a644101ed04d0beacea864ce805e0c4f86ba1cd1/src/traversing.js">jquery/src/traversing.js</a>
-				</section>
-
-				<section>
-					<section>
-						<h2>exports</h2>
-					</section>
-					<section data-markdown>
-						<script type="text/template">
-							## UMD
-
-							```javascript
-							var jQuery = function(){
-								// do something.
-							};
-
-							// expose to global scope.
-							umdify(jQuery);
-							```
-						</script>
-					</section>
-					<section>
-						<h2>umdify</h2>
-					</section>
-					<section >
-						<h2>UMDIFY</h2>
-<pre><code data-trim>
-function umdify(fn){
-	if(typeof define == 'undefined' && define.amd){
-		// AMD. Register as an anonymous module.
-		define([], fn);
-	}else if(module && module.exports){
-		// Common.js
-		module.exports = fn;
-	}else{
-		window[ 'YourAwesomeModule' ] = fn;
-	}
-};
-</code></pre>
-					</section>
-				</section>
-
-				<section>
-					<h2>Questions ?</h2>
-				</section>
-
-				<section>
-					<section>
-						<h2>Wait...</h2>
-					</section>
-					<section>
-						<h2>Other Things</h2>
-						<ul>
-							<li>rootJQuery</li>
-							<li>$.fn.init</li>
-							<li>$.fn.isPlainObject</li>
-							<li><del>$.each</del></li>
-						</ul>
-						<a href="http://stackoverflow.com/questions/7644199/jquery-source-code-questions">http://stackoverflow.com/questions/7644199/jquery-source-code-questions</a>
-					</section>
-				</section>
-
-				<section style="text-align: left;">
-					<h1>THE END</h1>
-					<p>
-						- <a href="http://jquery.com/">jQuery JavaScript Library</a> <br>
-						- <a href="https://robflaherty.github.io/jquery-annotated-source/">jQuery Annotated Source</a>
-					</p>
-				</section>
-
-			</div>
-
-		</div>
-
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
-
-		<script>
-
-			// Full list of configuration options available at:
-			// https://github.com/hakimel/reveal.js#configuration
-			Reveal.initialize({
-				controls: true,
-				progress: true,
-				history: true,
-				center: true,
-
-				transition: 'zoom', // none/fade/slide/convex/concave/zoom
-
-				// Optional reveal.js plugins
-				dependencies: [
-					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
-					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
-					{ src: 'plugin/zoom-js/zoom.js', async: true },
-					{ src: 'plugin/notes/notes.js', async: true }
-				]
-			});
-
-		</script>
-
-	</body>
+</body>
 </html>
