@@ -260,7 +260,7 @@ JavaScript原生异步编程的Promise模式有着自己的规范Promises/A+
 * 迭代器协议 iterator
 
 
-generator 生成器 原理：吧yield比作多个事物的原料 当所有yield原料都准备好了后 具体什么时候生产产品（执行）由我们决定  （顺序：依次生产）
+generator 生成器 原理：把yield比作多个事物的原料 当所有yield原料都准备好了后 具体什么时候生产产品（执行）由我们决定  （顺序：依次生产）
 
         function* anotherGenerator(i) {
             yield i + 1;//index 2
